@@ -132,6 +132,19 @@
 
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
             <h3 class="font-bold text-gray-400 text-xs uppercase tracking-wider border-b pb-2">Quote Info</h3>
+            
+            <!-- NEW: Company Logo Input with Delete Button -->
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">Company Logo</label>
+                <div class="flex items-center gap-2">
+                    <input type="file" id="input-logo" accept="image/*" class="flex-1 w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none text-sm file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" onchange="handleLogoUpload(this)">
+                    <button onclick="removeLogo()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg border border-red-100 transition-colors" title="Remove Logo">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-1 italic">Uploading a logo replaces the text name.</p>
+            </div>
+
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">Your Company Name</label>
                 <input type="text" id="input-company" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" oninput="updateState('companyName', this.value)">
@@ -158,7 +171,6 @@
         </div>
         
         <!-- CSS Scale Wrapper for Mobile Screen -->
-        <!-- Just wrapper, width/height is determined by content inside -->
         <div class="relative w-full overflow-y-auto flex justify-center pb-32">
             <div id="preview-container-wrapper" class="preview-scale-wrapper">
                 <!-- Pages injected here -->
@@ -234,14 +246,15 @@
         // --- INITIAL STATE ---
         const state = {
             companyName: '',
+            companyLogo: null, // Stores Base64 string of logo
             customerName: '',
             quoteDate: new Date().toISOString().split('T')[0],
             validationDays: '',
             contactPerson: '',
             contactPhone: '',
-            gstRate: 0,
+            gstRate: 18,
             items: [
-                
+               
             ]
         };
 
@@ -304,6 +317,24 @@
             document.getElementById('input-gst').value = state.gstRate;
         }
 
+        // --- LOGO UPLOAD HANDLER ---
+        function handleLogoUpload(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    updateState('companyLogo', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // --- NEW: REMOVE LOGO HANDLER ---
+        function removeLogo() {
+            updateState('companyLogo', null);
+            document.getElementById('input-logo').value = ''; 
+        }
+
         // --- PAGINATION LOGIC ---
         function getPagesHTML() {
             const totals = calculateTotals();
@@ -332,8 +363,7 @@
                     `;
                 }).join('');
 
-                // Fillers (Only needed if we want the border to go all the way down nicely, or on the last page)
-                // Let's fill every page to ITEMS_PER_PAGE to ensure consistent height
+                // Fillers
                 const fillCount = ITEMS_PER_PAGE - pageItems.length;
                 for(let j=0; j<fillCount; j++) {
                      const bgClass = (pageItems.length + j) % 2 === 0 ? 'bg-gray-100' : 'bg-white';
@@ -376,13 +406,17 @@
                         </div>
                     `;
                 } else {
-                    // Intermediate pages footer
                     footerContent = `
                         <div class="p-4 mt-auto text-center text-gray-400 text-xs italic">
                             Continued on next page...
                         </div>
                     `;
                 }
+
+                // Determine Header Content (Logo vs Text)
+                const headerContent = state.companyLogo 
+                    ? `<img src="${state.companyLogo}" style="max-height: 3rem; margin: 0 auto; object-fit: contain;" alt="Company Logo" />` 
+                    : `<h1 class="text-2xl font-bold text-orange-400 tracking-wide whitespace-nowrap">${state.companyName}</h1>`;
 
                 const pageHTML = `
                 <div class="a4-paper p-12 text-black box-border">
@@ -392,7 +426,7 @@
                             <div class="flex justify-between items-start mb-6">
                                 <div class="w-1/3"></div>
                                 <div class="w-1/3 text-center">
-                                    <h1 class="text-2xl font-bold text-orange-400 tracking-wide whitespace-nowrap">${state.companyName}</h1>
+                                    ${headerContent}
                                 </div>
                                 <div class="w-1/3 text-right">
                                     <div class="text-sm font-bold text-gray-700">Quotation</div>
