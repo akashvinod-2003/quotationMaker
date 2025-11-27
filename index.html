@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuoteMaker - Event Quotation</title>
+    
+    <!-- PWA MANIFEST LINK -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- MOBILE THEME COLORS -->
+    <meta name="theme-color" content="#22c55e">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+
+    <!-- 1. TAILWIND CSS (No installation needed) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. ICONS (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- 3. FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Hides scrollbar for clean UI */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* PRINT STYLES - Critical for PDF generation */
+        @media print {
+            @page { margin: 0; size: A4; }
+            body { -webkit-print-color-adjust: exact; background: white; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            
+            #print-container {
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+                padding: 10mm;
+                overflow: visible;
+                background: white;
+            }
+        }
+        
+        /* Base styles to hide print view on screen */
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 pb-24">
+
+    <!-- HEADER (Screen Only) -->
+    <header class="bg-white p-4 sticky top-0 z-10 border-b border-gray-200 shadow-sm no-print safe-top">
+        <div class="flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800">Quote<span class="text-green-600">Maker</span></h1>
+            <div class="text-xs font-medium bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                Total: ₹<span id="header-total">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- TAB 1: EQUIPMENT LIST (Editor) -->
+    <div id="view-items" class="p-4 no-print space-y-4 animate-fade">
+        <div id="items-list" class="space-y-4">
+            <!-- Items will be injected here by JS -->
+        </div>
+        
+        <button onclick="addNewItem()" class="w-full py-4 mt-4 border-2 border-dashed border-green-300 text-green-600 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-green-50 transition-colors active:scale-95">
+            <i data-lucide="plus" class="w-5 h-5"></i> Add Equipment
+        </button>
+    </div>
+
+    <!-- TAB 2: DETAILS FORM -->
+    <div id="view-details" class="p-4 no-print hidden space-y-6">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
+            <h3 class="font-bold text-gray-400 text-xs uppercase tracking-wider border-b pb-2">Client Info</h3>
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">Customer Name</label>
+                <input type="text" id="input-customer" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('customerName', this.value)">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">Contact Person</label>
+                <input type="text" id="input-contact" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('contactPerson', this.value)">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">Phone</label>
+                <input type="tel" id="input-phone" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('contactPhone', this.value)">
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
+            <h3 class="font-bold text-gray-400 text-xs uppercase tracking-wider border-b pb-2">Quote Info</h3>
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">Your Company Name</label>
+                <input type="text" id="input-company" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('companyName', this.value)">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">Date</label>
+                <input type="date" id="input-date" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('quoteDate', this.value)">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">GST Rate (%)</label>
+                <input type="number" id="input-gst" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('gstRate', this.value)">
+            </div>
+             <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">Validation (Days)</label>
+                <input type="text" id="input-valid" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('validationDays', this.value)">
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: PREVIEW (Screen) -->
+    <div id="view-preview" class="hidden no-print p-2 flex flex-col items-center bg-gray-800 min-h-screen">
+        <div class="text-white text-sm mb-4 mt-2 text-center opacity-80">
+            Previewing A4 Document
+        </div>
+        
+        <!-- CSS Scale Wrapper for Mobile Screen -->
+        <div class="relative w-full overflow-hidden flex justify-center">
+            <div class="origin-top scale-[0.45] md:scale-[0.7] shadow-2xl bg-white" style="width: 210mm; min-height: 297mm;">
+                <!-- Content injected by JS renderPreview() -->
+                <div id="preview-content-area" class="h-full w-full"></div>
+            </div>
+        </div>
+
+        <button onclick="window.print()" class="fixed bottom-24 bg-green-500 hover:bg-green-400 text-white font-bold py-3 px-8 rounded-full shadow-xl flex items-center gap-2 z-50 animate-bounce">
+            <i data-lucide="printer" class="w-5 h-5"></i> PRINT / SAVE PDF
+        </button>
+    </div>
+
+    <!-- PRINT VIEW (Hidden on screen, Visible on Print) -->
+    <div id="print-container" class="print-only">
+        <div id="print-content-area"></div>
+    </div>
+
+    <!-- EDIT MODAL (Overlay) -->
+    <div id="edit-modal" class="fixed inset-0 bg-white z-50 flex flex-col hidden transition-transform duration-300 transform translate-y-full">
+        <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
+            <button onclick="closeModal()" class="flex items-center text-gray-600">
+                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> Back
+            </button>
+            <span class="font-bold text-gray-800">Edit Item</span>
+            <button onclick="deleteCurrentItem()" class="text-red-500">
+                <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 space-y-6 flex-1 overflow-y-auto">
+            <input type="hidden" id="modal-id">
+            <div>
+                <label class="block text-sm font-bold text-gray-500 mb-2 uppercase">Description</label>
+                <input type="text" id="modal-desc" class="w-full text-lg p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" placeholder="e.g. Mic Stand">
+            </div>
+            
+            <div class="flex gap-4">
+                <div class="w-1/3">
+                    <label class="block text-sm font-bold text-gray-500 mb-2 uppercase">Qty</label>
+                    <input type="number" id="modal-qty" class="w-full text-lg p-3 border border-gray-300 rounded-lg text-center font-mono">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-sm font-bold text-gray-500 mb-2 uppercase">Price (₹)</label>
+                    <input type="number" id="modal-price" class="w-full text-lg p-3 border border-gray-300 rounded-lg text-right font-mono">
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-4 border-t border-gray-100 pb-8">
+            <button onclick="saveModal()" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl text-lg shadow-lg active:scale-95 transition-transform">
+                Done
+            </button>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 flex justify-around items-center no-print z-40 pb-safe shadow-[0_-5px_10px_rgba(0,0,0,0.05)]">
+        <button onclick="switchTab('items')" id="btn-tab-items" class="flex flex-col items-center p-2 rounded-lg transition-colors text-green-600 bg-green-50">
+            <i data-lucide="package" class="w-6 h-6"></i>
+            <span class="text-[10px] font-bold mt-1">EQUIPMENT</span>
+        </button>
+        <button onclick="switchTab('details')" id="btn-tab-details" class="flex flex-col items-center p-2 rounded-lg transition-colors text-gray-400">
+            <i data-lucide="user" class="w-6 h-6"></i>
+            <span class="text-[10px] font-bold mt-1">DETAILS</span>
+        </button>
+        <button onclick="switchTab('preview')" id="btn-tab-preview" class="flex flex-col items-center p-2 rounded-lg transition-colors text-gray-400">
+            <i data-lucide="file-text" class="w-6 h-6"></i>
+            <span class="text-[10px] font-bold mt-1">PREVIEW</span>
+        </button>
+    </nav>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- INITIAL STATE ---
+        const state = {
+            companyName: '',
+            customerName: '',
+            quoteDate: new Date().toISOString().split('T')[0],
+            validationDays: '15',
+            contactPerson: '',
+            contactPhone: '',
+            gstRate: 18,
+            items: [
+               
+            ]
+        };
+
+        // --- UTILS ---
+        const formatMoney = (amount) => {
+            return amount ? Number(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
+        };
+
+        const calculateTotals = () => {
+            let subtotal = 0;
+            state.items.forEach(item => {
+                const qty = item.quantity > 0 ? item.quantity : 1;
+                // Basic logic: if qty > 0 multiply, otherwise just price (flat fee)
+                const lineTotal = item.quantity > 0 ? (item.quantity * item.price) : item.price;
+                subtotal += lineTotal || 0;
+            });
+            const gst = (subtotal * state.gstRate) / 100;
+            return { subtotal, gst, total: subtotal + gst };
+        };
+
+        // --- DOM UPDATES ---
+        
+        // 1. Render List (Tab 1)
+        function renderItemsList() {
+            const listContainer = document.getElementById('items-list');
+            listContainer.innerHTML = '';
+            
+            state.items.forEach(item => {
+                const rowTotal = item.quantity > 0 ? item.quantity * item.price : item.price;
+                
+                const el = document.createElement('div');
+                el.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center active:bg-gray-50 transition-colors cursor-pointer';
+                el.onclick = () => openModal(item.id);
+                el.innerHTML = `
+                    <div class="flex-1">
+                        <div class="font-bold text-gray-800">${item.description || 'Empty Item'}</div>
+                        <div class="text-sm text-gray-500 mt-1">
+                            ${item.quantity} x ₹${formatMoney(item.price)}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="font-bold text-gray-800">₹${formatMoney(rowTotal)}</div>
+                        <i data-lucide="chevron-right" class="text-gray-300 w-5 h-5"></i>
+                    </div>
+                `;
+                listContainer.appendChild(el);
+            });
+            
+            // Re-initialize icons for newly added elements
+            lucide.createIcons();
+            
+            // Update Header Total
+            const totals = calculateTotals();
+            document.getElementById('header-total').innerText = formatMoney(totals.total);
+        }
+
+        // 2. Render Form Inputs (Tab 2) - Fill on load
+        function renderFormInputs() {
+            document.getElementById('input-company').value = state.companyName;
+            document.getElementById('input-customer').value = state.customerName;
+            document.getElementById('input-date').value = state.quoteDate;
+            document.getElementById('input-valid').value = state.validationDays;
+            document.getElementById('input-contact').value = state.contactPerson;
+            document.getElementById('input-phone').value = state.contactPhone;
+            document.getElementById('input-gst').value = state.gstRate;
+        }
+
+        // 3. Render HTML for A4 Document (Used by Preview and Print)
+        function getA4HTML() {
+            const totals = calculateTotals();
+            
+            // Generate Rows
+            const rowsHTML = state.items.map((item, index) => {
+                const rowTotal = item.quantity > 0 ? item.quantity * item.price : item.price;
+                const bgClass = index % 2 === 0 ? 'bg-gray-100' : 'bg-white';
+                return `
+                    <tr class="${bgClass}">
+                        <td class="py-1 px-2 border-r border-green-500 font-medium text-gray-800 text-sm">${item.description}</td>
+                        <td class="py-1 px-2 border-r border-green-500 text-center font-medium text-gray-800 text-sm">${item.quantity > 0 ? item.quantity : ''}</td>
+                        <td class="py-1 px-2 text-right font-medium text-gray-800 text-sm">${rowTotal > 0 ? formatMoney(rowTotal) : ''}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Fillers to maintain height
+            const fillCount = Math.max(0, 15 - state.items.length);
+            let fillersHTML = '';
+            for(let i=0; i<fillCount; i++) {
+                 const bgClass = (state.items.length + i) % 2 === 0 ? 'bg-gray-100' : 'bg-white';
+                 fillersHTML += `
+                    <tr class="${bgClass}">
+                        <td class="py-1 px-2 border-r border-green-500">&nbsp;</td>
+                        <td class="py-1 px-2 border-r border-green-500">&nbsp;</td>
+                        <td class="py-1 px-2">&nbsp;</td>
+                    </tr>`;
+            }
+
+            return `
+                <div class="h-full w-full p-12 relative text-black box-border">
+                    <div class="border-[2.5px] border-green-500 h-full min-h-[900px] relative p-1">
+                        <div class="p-4">
+                            <!-- HEADER -->
+                            <div class="flex justify-between items-start mb-6">
+                                <div class="w-1/3"></div>
+                                <div class="w-1/3 text-center">
+                                    <h1 class="text-2xl font-bold text-orange-400 tracking-wide whitespace-nowrap">${state.companyName}</h1>
+                                </div>
+                                <div class="w-1/3 text-right">
+                                    <div class="text-sm font-bold text-gray-700">Quotation</div>
+                                    <div class="text-xs text-gray-600 mt-1">Date - ${state.quoteDate}</div>
+                                </div>
+                            </div>
+
+                            <!-- CUSTOMER -->
+                            <div class="mb-6">
+                                <div class="bg-green-500 text-white font-bold px-2 py-1 inline-block w-48 text-sm uppercase">CUSTOMER</div>
+                                <div class="mt-1 px-2 font-bold text-sm uppercase text-gray-800">${state.customerName}</div>
+                            </div>
+
+                            <!-- TABLE -->
+                            <div class="mb-4">
+                                <table class="w-full border-collapse">
+                                    <thead>
+                                        <tr class="bg-green-500 text-white text-sm">
+                                            <th class="py-1 px-2 text-left font-bold w-3/5 border-r border-green-400">Item</th>
+                                            <th class="py-1 px-2 text-center font-bold w-1/5 border-r border-green-400">Quantity</th>
+                                            <th class="py-1 px-2 text-right font-bold w-1/5">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rowsHTML}
+                                        ${fillersHTML}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- TOTALS -->
+                            <div class="flex justify-end mb-12">
+                                <div class="w-64">
+                                    <div class="flex justify-between text-sm py-1">
+                                        <span class="font-medium text-gray-600">Subtotal</span>
+                                        <span class="font-bold text-gray-800">${formatMoney(totals.subtotal)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm py-1">
+                                        <span class="font-medium text-gray-600">GST (${state.gstRate}%)</span>
+                                        <span class="font-bold text-gray-800">${formatMoney(totals.gst)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm py-1 border-t border-gray-300 mt-1">
+                                        <span class="font-bold text-gray-900">TOTAL</span>
+                                        <div class="font-bold text-gray-900 flex gap-1"><span>₹</span><span>${formatMoney(totals.total)}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FOOTER -->
+                            <div class="absolute bottom-8 left-4 right-4">
+                                <div class="mb-8 text-xs font-bold text-gray-700">Validation Date : ${state.validationDays} days</div>
+                                <div class="text-center">
+                                    <p class="text-xs text-gray-600 font-medium mb-1">If you have any questions about this price quote, please contact</p>
+                                    <p class="text-sm font-bold text-gray-800">${state.contactPerson}, ${state.contactPhone}</p>
+                                    <p class="mt-2 font-bold italic text-lg text-black">Thank You !</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- ACTIONS ---
+
+        function updateState(key, value) {
+            state[key] = value;
+            renderPreview(); // Update preview logic if needed, usually deferred
+        }
+
+        function renderPreview() {
+            const html = getA4HTML();
+            document.getElementById('preview-content-area').innerHTML = html;
+            document.getElementById('print-content-area').innerHTML = html;
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Hide all
+            ['items', 'details', 'preview'].forEach(t => {
+                document.getElementById('view-' + t).classList.add('hidden');
+                const btn = document.getElementById('btn-tab-' + t);
+                btn.classList.remove('text-green-600', 'bg-green-50');
+                btn.classList.add('text-gray-400');
+            });
+
+            // Show Active
+            document.getElementById('view-' + tabName).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-tab-' + tabName);
+            activeBtn.classList.remove('text-gray-400');
+            activeBtn.classList.add('text-green-600', 'bg-green-50');
+
+            // If preview, render it fresh
+            if (tabName === 'preview') {
+                renderPreview();
+            }
+        }
+
+        // Modal Logic
+        const modal = document.getElementById('edit-modal');
+        
+        function openModal(id) {
+            const item = state.items.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('modal-id').value = item.id;
+            document.getElementById('modal-desc').value = item.description;
+            document.getElementById('modal-qty').value = item.quantity;
+            document.getElementById('modal-price').value = item.price;
+
+            modal.classList.remove('hidden');
+            // Small delay to allow display:block to apply before transform
+            setTimeout(() => {
+                modal.classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        function closeModal() {
+            modal.classList.add('translate-y-full');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function saveModal() {
+            const id = parseInt(document.getElementById('modal-id').value);
+            const desc = document.getElementById('modal-desc').value;
+            const qty = parseFloat(document.getElementById('modal-qty').value) || 0;
+            const price = parseFloat(document.getElementById('modal-price').value) || 0;
+
+            const itemIndex = state.items.findIndex(i => i.id === id);
+            if (itemIndex > -1) {
+                state.items[itemIndex] = { id, description: desc, quantity: qty, price: price };
+            }
+            
+            closeModal();
+            renderItemsList();
+        }
+
+        function addNewItem() {
+            const newId = Date.now();
+            state.items.push({ id: newId, description: '', quantity: 1, price: 0 });
+            openModal(newId);
+        }
+
+        function deleteCurrentItem() {
+            const id = parseInt(document.getElementById('modal-id').value);
+            state.items = state.items.filter(i => i.id !== id);
+            closeModal();
+            renderItemsList();
+        }
+
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            renderFormInputs();
+            renderItemsList();
+            renderPreview();
+            lucide.createIcons();
+        });
+
+    </script>
+</body>
+</html>
