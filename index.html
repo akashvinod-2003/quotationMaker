@@ -14,8 +14,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
 
-    <!-- 1. TAILWIND CSS (No installation needed) -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <!-- 1. CLOUDFLARE TAILWIND (Static v2.2.19) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" xintegrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzFxCnYt6/edhxvb9TZvWEWYT/asDKA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     <!-- 2. ICONS (Lucide) -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -29,6 +29,30 @@
         /* Hides scrollbar for clean UI */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Custom Shadows (Tailwind v2 doesn't support JIT shadows) */
+        .nav-shadow { box-shadow: 0 -5px 10px rgba(0,0,0,0.05); }
+
+        /* Animation classes */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade { animation: fadeIn 0.3s ease-in-out; }
+
+        /* Custom A4 Styles for Preview Scaling */
+        .a4-paper {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .preview-scale-wrapper {
+            transform-origin: top center;
+            transform: scale(0.45);
+        }
+        
+        @media (min-width: 768px) {
+            .preview-scale-wrapper { transform: scale(0.7); }
+        }
 
         /* PRINT STYLES - Critical for PDF generation */
         @media print {
@@ -73,7 +97,7 @@
             <!-- Items will be injected here by JS -->
         </div>
         
-        <button onclick="addNewItem()" class="w-full py-4 mt-4 border-2 border-dashed border-green-300 text-green-600 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-green-50 transition-colors active:scale-95">
+        <button onclick="addNewItem()" class="w-full py-4 mt-4 border-2 border-dashed border-green-300 text-green-600 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-green-50 transition-colors transform active:scale-95">
             <i data-lucide="plus" class="w-5 h-5"></i> Add Equipment
         </button>
     </div>
@@ -84,15 +108,15 @@
             <h3 class="font-bold text-gray-400 text-xs uppercase tracking-wider border-b pb-2">Client Info</h3>
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">Customer Name</label>
-                <input type="text" id="input-customer" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('customerName', this.value)">
+                <input type="text" id="input-customer" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" oninput="updateState('customerName', this.value)">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">Contact Person</label>
-                <input type="text" id="input-contact" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('contactPerson', this.value)">
+                <input type="text" id="input-contact" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" oninput="updateState('contactPerson', this.value)">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">Phone</label>
-                <input type="tel" id="input-phone" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('contactPhone', this.value)">
+                <input type="tel" id="input-phone" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" oninput="updateState('contactPhone', this.value)">
             </div>
         </div>
 
@@ -100,19 +124,19 @@
             <h3 class="font-bold text-gray-400 text-xs uppercase tracking-wider border-b pb-2">Quote Info</h3>
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">Your Company Name</label>
-                <input type="text" id="input-company" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('companyName', this.value)">
+                <input type="text" id="input-company" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" oninput="updateState('companyName', this.value)">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">Date</label>
-                <input type="date" id="input-date" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('quoteDate', this.value)">
+                <input type="date" id="input-date" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" oninput="updateState('quoteDate', this.value)">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">GST Rate (%)</label>
-                <input type="number" id="input-gst" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('gstRate', this.value)">
+                <input type="number" id="input-gst" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" oninput="updateState('gstRate', this.value)">
             </div>
              <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">Validation (Days)</label>
-                <input type="text" id="input-valid" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500" oninput="updateState('validationDays', this.value)">
+                <input type="text" id="input-valid" class="w-full p-2 bg-gray-50 rounded border border-gray-200 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" oninput="updateState('validationDays', this.value)">
             </div>
         </div>
     </div>
@@ -125,7 +149,7 @@
         
         <!-- CSS Scale Wrapper for Mobile Screen -->
         <div class="relative w-full overflow-hidden flex justify-center">
-            <div class="origin-top scale-[0.45] md:scale-[0.7] shadow-2xl bg-white" style="width: 210mm; min-height: 297mm;">
+            <div class="preview-scale-wrapper a4-paper">
                 <!-- Content injected by JS renderPreview() -->
                 <div id="preview-content-area" class="h-full w-full"></div>
             </div>
@@ -157,7 +181,7 @@
             <input type="hidden" id="modal-id">
             <div>
                 <label class="block text-sm font-bold text-gray-500 mb-2 uppercase">Description</label>
-                <input type="text" id="modal-desc" class="w-full text-lg p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" placeholder="e.g. Mic Stand">
+                <input type="text" id="modal-desc" class="w-full text-lg p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="e.g. Mic Stand">
             </div>
             
             <div class="flex gap-4">
@@ -173,14 +197,14 @@
         </div>
         
         <div class="p-4 border-t border-gray-100 pb-8">
-            <button onclick="saveModal()" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl text-lg shadow-lg active:scale-95 transition-transform">
+            <button onclick="saveModal()" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl text-lg shadow-lg active:scale-95 transition-transform transform">
                 Done
             </button>
         </div>
     </div>
 
     <!-- BOTTOM NAVIGATION -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 flex justify-around items-center no-print z-40 pb-safe shadow-[0_-5px_10px_rgba(0,0,0,0.05)]">
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 flex justify-around items-center no-print z-40 pb-safe nav-shadow">
         <button onclick="switchTab('items')" id="btn-tab-items" class="flex flex-col items-center p-2 rounded-lg transition-colors text-green-600 bg-green-50">
             <i data-lucide="package" class="w-6 h-6"></i>
             <span class="text-[10px] font-bold mt-1">EQUIPMENT</span>
@@ -206,9 +230,7 @@
             contactPerson: '',
             contactPhone: '',
             gstRate: 18,
-            items: [
-               
-            ]
+            items: []
         };
 
         // --- UTILS ---
@@ -239,7 +261,7 @@
                 const rowTotal = item.quantity > 0 ? item.quantity * item.price : item.price;
                 
                 const el = document.createElement('div');
-                el.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center active:bg-gray-50 transition-colors cursor-pointer';
+                el.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center hover:bg-gray-50 transition-colors cursor-pointer';
                 el.onclick = () => openModal(item.id);
                 el.innerHTML = `
                     <div class="flex-1">
@@ -305,10 +327,13 @@
                     </tr>`;
             }
 
+            // A4 Layout with Inline CSS for exact measures (Tailwind v2 safe)
             return `
                 <div class="h-full w-full p-12 relative text-black box-border">
-                    <div class="border-[2.5px] border-green-500 h-full min-h-[900px] relative p-1">
-                        <div class="p-4">
+                    <div style="border: 2.5px solid #22c55e; min-height: 900px; display: flex; flex-direction: column; padding: 4px;">
+                        
+                        <!-- Main Content Wrapper -->
+                        <div class="p-4 flex-1">
                             <!-- HEADER -->
                             <div class="flex justify-between items-start mb-6">
                                 <div class="w-1/3"></div>
@@ -345,7 +370,7 @@
                             </div>
 
                             <!-- TOTALS -->
-                            <div class="flex justify-end mb-12">
+                            <div class="flex justify-end mb-4">
                                 <div class="w-64">
                                     <div class="flex justify-between text-sm py-1">
                                         <span class="font-medium text-gray-600">Subtotal</span>
@@ -361,17 +386,18 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- FOOTER -->
-                            <div class="absolute bottom-8 left-4 right-4">
-                                <div class="mb-8 text-xs font-bold text-gray-700">Validation Date : ${state.validationDays} days</div>
-                                <div class="text-center">
-                                    <p class="text-xs text-gray-600 font-medium mb-1">If you have any questions about this price quote, please contact</p>
-                                    <p class="text-sm font-bold text-gray-800">${state.contactPerson}, ${state.contactPhone}</p>
-                                    <p class="mt-2 font-bold italic text-lg text-black">Thank You !</p>
-                                </div>
+                        </div>
+                        
+                        <!-- FOOTER -->
+                        <div class="p-4 mt-auto">
+                            <div class="mb-8 text-xs font-bold text-gray-700">Validation Date : ${state.validationDays} days</div>
+                            <div class="text-center">
+                                <p class="text-xs text-gray-600 font-medium mb-1">If you have any questions about this price quote, please contact</p>
+                                <p class="text-sm font-bold text-gray-800">${state.contactPerson}, ${state.contactPhone}</p>
+                                <p class="mt-2 font-bold italic text-lg text-black">Thank You !</p>
                             </div>
                         </div>
+
                     </div>
                 </div>
             `;
@@ -381,7 +407,7 @@
 
         function updateState(key, value) {
             state[key] = value;
-            renderPreview(); // Update preview logic if needed, usually deferred
+            renderPreview();
         }
 
         function renderPreview() {
@@ -406,7 +432,6 @@
             activeBtn.classList.remove('text-gray-400');
             activeBtn.classList.add('text-green-600', 'bg-green-50');
 
-            // If preview, render it fresh
             if (tabName === 'preview') {
                 renderPreview();
             }
@@ -425,7 +450,6 @@
             document.getElementById('modal-price').value = item.price;
 
             modal.classList.remove('hidden');
-            // Small delay to allow display:block to apply before transform
             setTimeout(() => {
                 modal.classList.remove('translate-y-full');
             }, 10);
